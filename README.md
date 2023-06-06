@@ -1,5 +1,5 @@
 
-## Spring Boot Native/Reactive Microservice with OAuth2 and Quartz for ECS Fargate using AWS Copilot CLI.
+## Spring Boot Native/Reactive Microservice with End-to-End Encryption on ECS Fargate using AWS Copilot CLI.
 
 * **Author**: [Andres Solorzano](https://www.linkedin.com/in/aosolorzano/).
 * **Level**: Advanced.
@@ -22,15 +22,28 @@ To perform these activities, the users must be logged into the OIDC Service that
 All test cases using the TDD methodology from the beginning of the development phase, and only Integration Tests are executed with the support of Testcontainers because Unit Testing does not cover real world scenarios.
 This project also uses Docker Compose to deploy a local cluster alongside the other required services by the Spring Boot application.
 
+## Generating TLS self-signed certificate.
+Go to the `utils/docker/envoy/certs` directory and execute the following:
+```
+openssl req -x509               \
+  -newkey rsa:4096              \
+  -days   365                   \
+  -keyout server-key.pem        \
+  -out    server-crt.pem
+```
+The OpenSSL command will create 2 files: the certificate and its private key.
+Then, modify the `utils/docker/envoy/envoy.yaml` file replacing your server domain name in the keyword `<server_domain_name>`. 
+Now, you're ready to launch the Tasks Server microservice.
+
 ## Running Locally with Docker Compose.
 Execute the following command to get your Cognito User Pool ID:
-```bash
+```
 aws cognito-idp list-user-pools --max-results 10
 ```
 Then, modify the `utils/docker/compose/tasks-api-dev.env` file and replace the `<cognito_user_pool_id>` with the corresponding one.
 
 Now, you can execute the following command from the project's root directory to deploy the Docker cluster locally:
-```bash
+```
 docker compose up --build
 ```
 
@@ -55,7 +68,7 @@ Open a new terminal window and export the following environment variables:
 ```bash
 export SPRING_PROFILES_ACTIVE=dev
 export CITY_TASKS_DB_CLUSTER_SECRET='{"dbClusterIdentifier":"city-tasks-db-cluster","password":"postgres123","dbname":"CityTasksDB","engine":"postgres","port":5432,"host":"localhost","username":"postgres"}'
-export CITY_IDP_ENDPOINT='https://cognito-idp.us-east-1.amazonaws.com/<your_cognito_user_pool_id>'
+export CITY_IDP_ENDPOINT='https://cognito-idp.<your_cognito_region>.amazonaws.com/<your_cognito_user_pool_id>'
 export CITY_TASKS_TIME_ZONE='-05:00'
 export AWS_DEFAULT_REGION='ap-southeast-2'
 export AWS_ACCESS_KEY_ID='DUMMY'

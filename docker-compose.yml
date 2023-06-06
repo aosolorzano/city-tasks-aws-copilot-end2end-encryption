@@ -59,15 +59,3 @@ services:
       - "8080:8080"
     networks:
       - tasks-network
-
-  tasks-client:
-    image: aosolorzano/city-tasks-client:1.0.0
-    container_name: tasks-client
-    build:
-      context: .
-      dockerfile: utils/docker/alpine/Dockerfile
-    depends_on:
-      - tasks-api
-    tty: true
-    networks:
-      - tasks-network

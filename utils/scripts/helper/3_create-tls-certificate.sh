@@ -4,6 +4,7 @@ cd "$WORKING_DIR"/utils/docker/envoy/certs || {
   echo "Error moving to the Docker Envoy-Certs directory."
   exit 1
 }
+rm -f ./*.pem
 
 # Generate CA self-signed certificate.
 read -r -p 'Please, enter the <Root Domain Name> for the CA certificate: [example.com] ' root_domain_name
@@ -11,7 +12,6 @@ if [ -z "$root_domain_name" ]; then
   root_domain_name='example.com'
 fi
 echo ""
-rm -f ./*.pem
 openssl req -x509 -nodes    \
   -newkey rsa:4096          \
   -days   365               \
@@ -42,7 +42,7 @@ openssl req -nodes          \
 echo "DONE!"
 
 echo ""
-echo "Using CA private key to sign the Web Server certificate..."
+echo "Signing Web Server (CSR) certificate..."
 echo ""
 echo "subjectAltName = DNS:*.$server_domain_name" > v3.ext
 openssl x509                \
@@ -53,7 +53,14 @@ openssl x509                \
   -CAcreateserial           \
   -out    server-crt.pem    \
   -extfile v3.ext        || {
-  echo "Error signing Web Server TLS certificate."
+  echo "Error signing Web Server (CSR) certificate."
   exit 1
 }
+sed -i'.bak' -e "s/server_domain_name/$server_domain_name/g"  \
+      "$WORKING_DIR"/utils/docker/envoy/envoy.yaml
+rm -f "$WORKING_DIR"/utils/docker/envoy/envoy.yaml.bak
+echo ""
+
+clear
 echo "DONE!"
+echo ""
