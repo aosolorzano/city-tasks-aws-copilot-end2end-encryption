@@ -1,0 +1,73 @@
+version: '3.9'
+
+networks:
+  tasks-network:
+    driver: bridge
+
+services:
+  tasks-postgres:
+    image: postgres:14.4
+    container_name: postgres
+    environment:
+      - POSTGRES_DB=CityTasksDB
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres123
+    ports:
+      - "5432:5432"
+    networks:
+      - tasks-network
+
+  tasks-localstack:
+    image: localstack/localstack:latest
+    container_name: localstack
+    env_file:
+      - utils/docker/compose/localstack-dev.env
+    ports:
+      - "4566:4566"
+    volumes:
+      - ./utils/docker/dynamodb/items/devices.json:/var/lib/localstack/devices.json
+      - ./utils/docker/dynamodb/scripts/create-resources.sh:/etc/localstack/init/ready.d/create-resources.sh
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - tasks-network
+
+  tasks-envoy:
+    image: envoyproxy/envoy:v1.26-latest
+    container_name: envoy
+    volumes:
+        - ./utils/docker/envoy/envoy.yaml:/etc/envoy/envoy.yaml
+        - ./utils/docker/envoy/certs/server-crt.pem:/etc/server.crt
+        - ./utils/docker/envoy/certs/server-key.pem:/etc/server.key
+    ports:
+      - "443:443"
+    networks:
+      - tasks-network
+
+  tasks-api:
+    image: aosolorzano/city-tasks-api:1.5.0
+    container_name: tasks-api
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - utils/docker/compose/tasks-api-dev.env
+    depends_on:
+      - tasks-postgres
+      - tasks-localstack
+      - tasks-envoy
+    ports:
+      - "8080:8080"
+    networks:
+      - tasks-network
+
+  tasks-client:
+    image: aosolorzano/city-tasks-client:1.0.0
+    container_name: tasks-client
+    build:
+      context: .
+      dockerfile: utils/docker/alpine/Dockerfile
+    depends_on:
+      - tasks-api
+    tty: true
+    networks:
+      - tasks-network
