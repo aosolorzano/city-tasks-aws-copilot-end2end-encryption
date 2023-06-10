@@ -11,21 +11,21 @@ static_resources:
                 "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
                 codec_type: AUTO
                 stat_prefix: ingress_http
+                http_filters:
+                  - name: envoy.filters.http.router
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
                 route_config:
                   name: local_route
                   virtual_hosts:
-                    - name: app
+                    - name: default
                       domains:
-                        - "root_domain_name"
+                        - "server_fqdn"
                       routes:
                         - match:
                             prefix: "/"
                           route:
                             cluster: tasks-service
-                http_filters:
-                  - name: envoy.filters.http.router
-                    typed_config:
-                      "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
           transport_socket:
             name: envoy.transport_sockets.tls
             typed_config:
@@ -48,5 +48,5 @@ static_resources:
               - endpoint:
                   address:
                     socket_address:
-                      address: tasks-api
+                      address: "tasks-api"
                       port_value: 8080

@@ -24,12 +24,14 @@ network:
     security_group:
       ingress:
         - ip_protocol: tcp
-          ports: 8080
+          ports: 443
           cidr: '0.0.0.0/0'
 
 # Application Load Balancer configuration.
 http:
   public:
+    certificates:
+      - arn:aws:acm:workloads_aws_region:workloads_aws_account_id:certificate/acm_certificate_number
     access_logs:
       bucket_name: s3_bucket_name
       prefix: access-logs

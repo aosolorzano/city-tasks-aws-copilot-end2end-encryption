@@ -31,13 +31,14 @@ services:
     networks:
       - tasks-network
 
-  tasks-envoy:
-    image: envoyproxy/envoy:v1.26-latest
-    container_name: envoy
-    volumes:
-        - ./utils/docker/envoy/envoy.yaml:/etc/envoy/envoy.yaml
-        - ./utils/docker/envoy/certs/server-crt.pem:/etc/server.crt
-        - ./utils/docker/envoy/certs/server-key.pem:/etc/server.key
+  tasks-proxy:
+    image: aosolorzano/city-tasks-proxy:1.0.0
+    container_name: tasks-proxy
+    build:
+      context: .
+      dockerfile: ./utils/docker/envoy/Dockerfile
+      args:
+        - envoy_env=dev
     ports:
       - "443:443"
     networks:
@@ -54,7 +55,7 @@ services:
     depends_on:
       - tasks-postgres
       - tasks-localstack
-      - tasks-envoy
+      - tasks-proxy
     ports:
       - "8080:8080"
     networks:

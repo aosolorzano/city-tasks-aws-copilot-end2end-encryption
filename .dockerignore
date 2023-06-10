@@ -3,3 +3,5 @@
 !mvnw
 !pom.xml
 !src
+!utils/docker/envoy
+!utils/certs

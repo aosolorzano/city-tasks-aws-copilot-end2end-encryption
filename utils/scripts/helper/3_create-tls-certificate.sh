@@ -1,66 +1,69 @@
 #!/usr/bin/env bash
 
-cd "$WORKING_DIR"/utils/docker/envoy/certs || {
+cd "$WORKING_DIR"/utils/certs || {
   echo "Error moving to the Docker Envoy-Certs directory."
   exit 1
 }
-rm -f ./*.pem
 
-# Generate CA self-signed certificate.
-read -r -p 'Please, enter the <Root Domain Name> for the CA certificate: [example.com] ' root_domain_name
-if [ -z "$root_domain_name" ]; then
-  root_domain_name='example.com'
+### CREATE CA CERTIFICATE
+echo ""
+if [ ! -f "$WORKING_DIR"/utils/certs/ca-key.pem ] || [ ! -f "$WORKING_DIR"/utils/certs/ca-cert.pem ]; then
+  rm -f ./*.pem
+  rm -f ./*.srl
+  read -r -p 'Enter the <Domain Name> for your CA (Intermediate) certificate: ' ca_domain_name
+  if [ -z "$ca_domain_name" ]; then
+    echo "Error: You must enter a valid <Domain Name> for your CA certificate."
+    exit 1
+  fi
+  openssl ecparam                 \
+    -name prime256v1              \
+    -genkey                       \
+    -out ca-key.pem               \
+    -outform PEM
+  openssl req -new -x509 -sha256  \
+    -key ca-key.pem               \
+    -out ca-cert.pem              \
+    -days 365                     \
+    -subj "/C=EC/ST=Pichincha/L=UIO/O=Hiperium Company/OU=Innovation/CN=$ca_domain_name/emailAddress=support@$ca_domain_name"
 fi
-echo ""
-openssl req -x509 -nodes    \
-  -newkey rsa:4096          \
-  -days   365               \
-  -keyout ca-key.pem        \
-  -out    ca-crt.pem        \
-  -subj "/C=EC/ST=Pichincha/L=UIO/O=Hiperium Co./OU=Innovation/CN=*.$root_domain_name/emailAddress=contact@$root_domain_name" || {
-  echo "Error generating domain name TLS certificate."
-  exit 1
-}
-echo "DONE!"
 
-# Generate CSR certificate for Web Server.
-echo ""
-read -r -p 'Please, enter the <Server Domain Name> for the CSR certificate: [example.io] ' server_domain_name
-if [ -z "$server_domain_name" ]; then
-  server_domain_name='example.io'
+### CREATE CSR CERTIFICATE
+if [ ! -f "$WORKING_DIR"/utils/certs/server-key.pem ] || [ ! -f "$WORKING_DIR"/utils/certs/server-cert.pem ]; then
+  rm -f server-key-no-header.pem
+  rm -f server-signed-*.pem
+  read -r -p 'Enter the <Domain Name> for your CSR (Server) certificate: ' server_domain_name
+  if [ -z "$server_domain_name" ]; then
+    server_domain_name='example.io'
+  fi
+  openssl ecparam                 \
+    -name prime256v1              \
+    -genkey                       \
+    -out server-key.pem           \
+    -outform PEM
+  openssl req -new -sha256        \
+    -key server-key.pem           \
+    -out server-cert.pem          \
+    -days 365                     \
+    -subj "/C=EC/ST=Pichincha/L=UIO/O=Hiperium Cloud/OU=Engineering/CN=$server_domain_name/emailAddress=support@$server_domain_name"
+    ### REMOVING HEADER FROM CSR PRIVATE KEY
+    openssl ec -in server-key.pem -outform PEM -out server-key-no-header.pem
 fi
-echo ""
-openssl req -nodes          \
-  -newkey rsa:4096          \
-  -days   365               \
-  -keyout server-key.pem    \
-  -out    server-req.pem    \
-  -subj "/C=EC/ST=Pichincha/L=UIO/O=Hiperium Cloud/OU=Smart Cities/CN=*.$server_domain_name/emailAddress=contact@$server_domain_name" || {
-  echo "Error generating CSR web server certificate."
-  exit 1
-}
-echo "DONE!"
 
 echo ""
-echo "Signing Web Server (CSR) certificate..."
+echo "Signing CSR certificate using CA certificate..."
 echo ""
-echo "subjectAltName = DNS:*.$server_domain_name" > v3.ext
-openssl x509                \
-  -req                      \
-  -in     server-req.pem    \
-  -CA     ca-crt.pem        \
-  -CAkey  ca-key.pem        \
-  -CAcreateserial           \
-  -out    server-crt.pem    \
-  -extfile v3.ext        || {
-  echo "Error signing Web Server (CSR) certificate."
-  exit 1
-}
-sed -i'.bak' -e "s/server_domain_name/$server_domain_name/g"  \
-      "$WORKING_DIR"/utils/docker/envoy/envoy.yaml
-rm -f "$WORKING_DIR"/utils/docker/envoy/envoy.yaml.bak
-echo ""
+echo "subjectAltName = DNS:$AWS_WORKLOADS_ENV.$server_domain_name" > v3.ext
+openssl x509 -req -sha256       \
+  -in      server-cert.pem      \
+  -CA      ca-cert.pem          \
+  -CAkey   ca-key.pem           \
+  -days    365                  \
+  -extfile v3.ext               \
+  -out     server-cert-"$AWS_WORKLOADS_ENV".pem   \
+  -CAcreateserial
 
-clear
-echo "DONE!"
+### MOVING CERTIFICATE FILES TO THE CORRESPONDING DIRECTORY
+cp server-key-no-header.pem ./"$AWS_WORKLOADS_ENV"/server-key.pem
+mv server-cert-"$AWS_WORKLOADS_ENV".pem ca-cert-srl ./"$AWS_WORKLOADS_ENV"
 echo ""
+echo "DONE!"

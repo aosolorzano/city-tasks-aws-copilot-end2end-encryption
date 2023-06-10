@@ -60,8 +60,10 @@ helperMenu() {
     1) Revert Automated Files.
     2) Prune Docker System.
     3) Create Self-Signed Certificate.
+    4) Import Self-Signed Certificate to ACM.
     -------------------------------------
     r) Return.
+    q) Quit.
   "
   read -r -p 'Choose an option: ' option
   case $option in
@@ -83,9 +85,21 @@ helperMenu() {
     sh "$WORKING_DIR"/utils/scripts/helper/3_create-tls-certificate.sh
     helperMenu
     ;;
+  4)
+    clear
+    sh "$WORKING_DIR"/utils/scripts/helper/4_import-tls-certificate-to-acm.sh
+    helperMenu
+    ;;
   [Rr])
     clear
     menu
+    ;;
+  [Qq])
+    clear
+    echo ""
+    echo "Done!"
+    echo ""
+    exit 0
     ;;
   *)
     clear
@@ -100,8 +114,9 @@ menu() {
     *************************************
     ************* Main Menu *************
     *************************************
-    1) Create Backend.
-    2) Delete Backend.
+    1) Docker Compose deployment.
+    2) Create Backend on AWS.
+    3) Delete Backend on AWS.
     -------------------------------------
     h) Helper scripts.
     q) Quit.
@@ -114,11 +129,16 @@ menu() {
     ;;
   1)
     clear
-    sh "$WORKING_DIR"/utils/scripts/1_create-backend.sh
+    sh "$WORKING_DIR"/utils/scripts/1_deploy-docker-cluster.sh
     menu
     ;;
   2)
-    sh "$WORKING_DIR"/utils/scripts/2_delete-backend.sh
+    clear
+    sh "$WORKING_DIR"/utils/scripts/2_create-backend.sh
+    menu
+    ;;
+  3)
+    sh "$WORKING_DIR"/utils/scripts/3_delete-backend.sh
     menu
     ;;
   [Qq])

@@ -31,8 +31,8 @@ openssl req -x509               \
   -keyout server-key.pem        \
   -out    server-crt.pem
 ```
-The OpenSSL command will create 2 files: the certificate and its private key.
-Then, modify the `utils/docker/envoy/envoy.yaml` file replacing your server domain name in the keyword `<server_domain_name>`. 
+The OpenSSL command creates 2 files: the certificate and its private key.
+Modify the `utils/docker/envoy/envoy-https-http.yaml` file replacing your server domain name instead the keyword `server_fqdn`. 
 Now, you're ready to launch the Tasks Server microservice.
 
 ## Running Locally with Docker Compose.
