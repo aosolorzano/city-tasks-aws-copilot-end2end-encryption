@@ -19,14 +19,14 @@ sh "$WORKING_DIR"/utils/scripts/helper/1_revert-automated-scripts.sh
 
 ### READING APEX DOMAIN NAME AND SERVER FQDN
 echo ""
-read -r -p 'Enter the <Domain Name> used in your CA certificate: ' apex_domain_name
+read -r -p 'Enter the <Domain Name> used in your <CA> certificate: ' apex_domain_name
 if [ -z "$apex_domain_name" ]; then
   echo "Error: The <Domain Name> is required."
   exit 1
 fi
 
 ### READING SERVER DOMAIN NAME AND SERVER FQDN
-read -r -p 'Enter the <Domain Name> used in your CSR certificate: ' server_domain_name
+read -r -p 'Enter the <Domain Name> used in your <CSR> certificate: ' server_domain_name
 if [ -z "$server_domain_name" ]; then
   echo "Error: The <Domain Name> is required."
   exit 1

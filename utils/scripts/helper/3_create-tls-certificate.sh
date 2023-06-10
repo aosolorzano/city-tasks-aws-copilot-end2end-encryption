@@ -64,6 +64,6 @@ openssl x509 -req -sha256       \
 
 ### MOVING CERTIFICATE FILES TO THE CORRESPONDING DIRECTORY
 cp server-key-no-header.pem ./"$AWS_WORKLOADS_ENV"/server-key.pem
-mv server-cert-"$AWS_WORKLOADS_ENV".pem ca-cert-srl ./"$AWS_WORKLOADS_ENV"
+mv server-cert-"$AWS_WORKLOADS_ENV".pem ca-cert.srl ./"$AWS_WORKLOADS_ENV"
 echo ""
 echo "DONE!"

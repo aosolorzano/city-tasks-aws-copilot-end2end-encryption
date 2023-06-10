@@ -15,7 +15,8 @@ if [ ! -f "$CERTS_DIR"/ca-cert.pem ] || [ ! -f "$CERTS_DIR"/"$AWS_WORKLOADS_ENV"
 fi
 
 ### READING SERVER DOMAIN NAME AND SERVER FQDN
-read -r -p 'Enter the <Domain Name> used in your CSR certificate: ' server_domain_name
+echo ""
+read -r -p 'Enter the <Domain Name> used in your <CSR> certificate: ' server_domain_name
 if [ -z "$server_domain_name" ]; then
   echo "Error: The <Domain Name> is required."
   exit 1
@@ -44,14 +45,11 @@ if [ -z "$cognito_user_pool_id" ]; then
 fi
 
 ### ASKING TO PRUNE DOCKER SYSTEM
+echo ""
 read -r -p "Do you want to prune your docker system? [y/N] " response
 case $response in
   [yY])
-    echo ""
-    echo "Pruning docker system..."
     sh "$WORKING_DIR"/utils/scripts/helper/2_docker-system-prune.sh
-    echo ""
-    echo "Done!"
     ;;
   *)
     echo "Skipping..."
@@ -66,5 +64,8 @@ rm -f "$WORKING_DIR"/utils/docker/compose/tasks-api-dev.env.bak
 
 ### STARTING DOCKER CLUSTER
 echo ""
-echo "Starting Docker cluster..."
+echo "STARING DOCKER CLUSTER..."
+echo ""
 docker compose up --build
+echo ""
+echo "DONE!"

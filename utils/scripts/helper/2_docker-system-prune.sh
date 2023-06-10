@@ -2,7 +2,7 @@
 set -e
 
 echo ""
-echo "PRUNING DOCKER SYSTEM STATE..."
+echo "PRUNING DOCKER SYSTEM..."
 echo ""
 docker system prune --all --force --volumes
 

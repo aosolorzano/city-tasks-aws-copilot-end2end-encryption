@@ -11,3 +11,5 @@ cat "$TEMPLATE_DIR"/copilot/env/"$AWS_WORKLOADS_ENV"/manifest.yml > "$WORKING_DI
 cat "$TEMPLATE_DIR"/iam/s3-alb-access-logs-policy.json            > "$WORKING_DIR"/utils/aws/iam/s3-alb-access-logs-policy.json
 cat "$TEMPLATE_DIR"/envoy/envoy-https-http.yaml                   > "$WORKING_DIR"/utils/docker/envoy/envoy-https-http.yaml
 cat "$TEMPLATE_DIR"/docker/tasks-api-dev.env                      > "$WORKING_DIR"/utils/docker/compose/tasks-api-dev.env
+
+echo "subjectAltName = DNS:api.example.com" > "$WORKING_DIR"/utils/certs/v3.ext
