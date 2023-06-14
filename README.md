@@ -5,14 +5,15 @@
 * **Level**: Advanced.
 * **Technologies**: Java 17, Spring Boot 3, Spring Native, Spring WebFlux, Spring OAuth2, Quartz, Flyway, AWS Copilot CLI, Testcontainers, Aurora Postgres, DynamoDB, Elastic Load Balancer (ELB), and Docker.
 
-![](utils/docs/images/solution_architecture_v2.png)
+![](utils/docs/images/solution_architecture_v3.png)
 
-You can read the following sequence of articles for more details and context:
+You can read the following sequence of articles to get more context:
 
-1. [Multi-Account environment on AWS](https://aosolorzano.medium.com/implementing-a-multi-account-environment-with-aws-organizations-and-the-iam-identity-center-d1cdb40bdf4d).
+1. [Multi-Account environment on AWS using IAM Identity Center](https://aosolorzano.medium.com/implementing-a-multi-account-environment-with-aws-organizations-and-the-iam-identity-center-d1cdb40bdf4d).
 2. [OAuth2 in Spring Boot Native microservice](https://aosolorzano.medium.com/oauth2-in-spring-boot-native-reactive-microservice-with-amazon-cognito-as-oidc-service-c454d84a5234).
-3. [Deploy Spring Boot Native microservice with Copilot CLI](https://aosolorzano.medium.com/spring-boot-native-microservice-on-ecs-fargate-using-aws-copilot-cli-for-cross-account-deployment-73b1836f21f7).
-4. [Secure HTTP communications using ACM over an ALB](https://aosolorzano.medium.com/securing-http-communication-over-an-alb-using-acm-and-copilot-cli-in-a-multi-account-environment-954de1b89e54).
+3. [Deploying Spring Boot Native microservice using Cross-Account deployment](https://aosolorzano.medium.com/spring-boot-native-microservice-on-ecs-fargate-using-aws-copilot-cli-for-cross-account-deployment-73b1836f21f7).
+4. [Securing HTTP communications using Amazon Certificate Manager (ACM) and ALB](https://aosolorzano.medium.com/securing-http-communication-over-an-alb-using-acm-and-copilot-cli-in-a-multi-account-environment-954de1b89e54).
+5. [End-to-End Encryption using TLS ECDSA certificate and ACM with Copilot CLI](https://aosolorzano.medium.com/securing-http-communication-over-an-alb-using-acm-and-copilot-cli-in-a-multi-account-environment-954de1b89e54).
 
 ## Description.
 This project uses the Spring Boot Framework to manage Quartz Jobs in a Spring Native microservice with the use of reactive programing using Spring WebFlux.
@@ -23,7 +24,7 @@ All test cases using the TDD methodology from the beginning of the development p
 This project also uses Docker Compose to deploy a local cluster alongside the other required services by the Spring Boot application.
 
 ## Generating TLS self-signed certificate.
-Go to the `utils/docker/envoy/certs` directory and execute the following:
+Go to the `utils/certs` directory and execute the following:
 ```
 openssl req -x509               \
   -newkey rsa:4096              \
@@ -32,7 +33,7 @@ openssl req -x509               \
   -out    server-crt.pem
 ```
 The OpenSSL command creates 2 files: the certificate and its private key.
-Modify the `utils/docker/envoy/envoy-https-http.yaml` file replacing your server domain name instead the keyword `server_fqdn`. 
+Modify the `utils/docker/envoy/envoy.yaml` file replacing your server domain name instead the keyword `server_fqdn`. 
 Now, you're ready to launch the Tasks Server microservice.
 
 ## Running Locally with Docker Compose.
@@ -60,12 +61,12 @@ Use this option if you want to explore more features such as running your tests 
 *IMPORTANT:* The GraalVM `native-image` compiler should be installed and configured on your machine.
 
 Deploy the required services using Docker Compose command:
-```bash
+```
 docker compose up tasks-postgres tasks-localstack
 ```
 
 Open a new terminal window and export the following environment variables:
-```bash
+```
 export SPRING_PROFILES_ACTIVE=dev
 export CITY_TASKS_DB_CLUSTER_SECRET='{"dbClusterIdentifier":"city-tasks-db-cluster","password":"postgres123","dbname":"CityTasksDB","engine":"postgres","port":5432,"host":"localhost","username":"postgres"}'
 export CITY_IDP_ENDPOINT='https://cognito-idp.<your_cognito_region>.amazonaws.com/<your_cognito_user_pool_id>'
@@ -77,7 +78,7 @@ export AWS_ENDPOINT_OVERRIDE='http://localhost:4566'
 ```
 
 Then, create and run the native executable from the project's root directory:
-```bash
+```
 $ ./mvnw clean native:compile -Pnative spring-boot:run
 ```
 
@@ -86,13 +87,19 @@ Use the following script to deploy the application into AWS:
 ```
 ./run-scripts.sh
 ```
-This script shows a menu with the following options:
+the script will ask you for the required AWS profiles to deploy the application into AWS:
+
+![](utils/docs/images/bash_script_entering_variables.png)
+
+Then, the script shows a main menu with the following options:
 
 ![](utils/docs/images/bash_script_main_menu.png)
 
-Choose option 1 to deploy the application into AWS. You don't need to have exported the environment variables because the script will ask you for them:
+Choose option 1 to deploy the application into AWS.
 
-![](utils/docs/images/bash_script_entering_variables.png)
+Also, you have a Helper Menu to perform other activities as prerequisites for the application deployment:
+
+![](utils/docs/images/helper_menu.png)
 
 ### AWS Copilot CLI - Helpful Commands.
 List all of your AWS Copilot applications.
