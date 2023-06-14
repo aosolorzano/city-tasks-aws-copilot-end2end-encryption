@@ -23,13 +23,21 @@ if [ -z "$server_domain_name" ]; then
 fi
 server_fqdn="$AWS_WORKLOADS_ENV.$server_domain_name"
 
+### ASKING TO PRUNE DOCKER SYSTEM
+read -r -p "Do you want to prune your docker system? [y/N] " response
+case $response in
+  [yY])
+    sh "$WORKING_DIR"/utils/scripts/helper/2_docker-system-prune.sh
+    ;;
+esac
+
 ### REMOVING PREVIOUS CONFIGURATION FILES
 sh "$WORKING_DIR"/utils/scripts/helper/1_revert-automated-scripts.sh
 
 ### UPDATE ENVOY CONFIGURATION FILE WITH SERVER FQDN
 sed -i'.bak' -e "s/server_fqdn/$server_fqdn/g;" \
-      "$WORKING_DIR"/utils/docker/envoy/envoy-https-http.yaml
-rm -f "$WORKING_DIR"/utils/docker/envoy/envoy-https-http.yaml.bak
+      "$WORKING_DIR"/utils/docker/envoy/envoy.yaml
+rm -f "$WORKING_DIR"/utils/docker/envoy/envoy.yaml.bak
 
 echo ""
 echo "Getting information from AWS. Please wait..."
@@ -43,18 +51,6 @@ if [ -z "$cognito_user_pool_id" ]; then
   echo "Error: Not Cognito User Pool ID was found with name: 'CityUserPool'."
   exit 0
 fi
-
-### ASKING TO PRUNE DOCKER SYSTEM
-echo ""
-read -r -p "Do you want to prune your docker system? [y/N] " response
-case $response in
-  [yY])
-    sh "$WORKING_DIR"/utils/scripts/helper/2_docker-system-prune.sh
-    ;;
-  *)
-    echo "Skipping..."
-    ;;
-esac
 
 ### UPDATING DOCKER COMPOSE ENVIRONMENT FILE
 idp_aws_region=$(aws configure get region --profile "$AWS_IDP_PROFILE")

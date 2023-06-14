@@ -56,7 +56,7 @@ static_resources:
                   virtual_hosts:
                     - name: default
                       domains:
-                        - "server_fqdn"
+                        - "*"
                       routes:
                         - match: { prefix: "/" }
                           route:
@@ -76,7 +76,7 @@ static_resources:
   clusters:
     - name: tasks-service
       per_connection_buffer_limit_bytes: 32768
-      type: STRICT_DNS
+      type: STATIC
       load_assignment:
         cluster_name: tasks-service
         endpoints:
@@ -84,7 +84,7 @@ static_resources:
               - endpoint:
                   address:
                     socket_address:
-                      address: "tasks-api"
+                      address: 127.0.0.1
                       port_value: 8080
 
 layered_runtime:

@@ -17,26 +17,14 @@ fi
 ### REMOVING PREVIOUS CONFIGURATION FILES
 sh "$WORKING_DIR"/utils/scripts/helper/1_revert-automated-scripts.sh
 
-### READING APEX DOMAIN NAME AND SERVER FQDN
-echo ""
-read -r -p 'Enter the <Domain Name> used in your <CA> certificate: ' apex_domain_name
-if [ -z "$apex_domain_name" ]; then
-  echo "Error: The <Domain Name> is required."
-  exit 1
-fi
-
 ### READING SERVER DOMAIN NAME AND SERVER FQDN
+echo ""
 read -r -p 'Enter the <Domain Name> used in your <CSR> certificate: ' server_domain_name
 if [ -z "$server_domain_name" ]; then
   echo "Error: The <Domain Name> is required."
   exit 1
 fi
 server_fqdn="$AWS_WORKLOADS_ENV.$server_domain_name"
-
-### UPDATE ENVOY CONFIGURATION FILE WITH SERVER FQDN
-sed -i'.bak' -e "s/server_fqdn/$server_fqdn/g; s/tasks-api/localhost/g" \
-      "$WORKING_DIR"/utils/docker/envoy/envoy-https-http.yaml
-rm -f "$WORKING_DIR"/utils/docker/envoy/envoy-https-http.yaml.bak
 
 ### UPDATE API MANIFEST FILE WITH SERVER FQDN
 sed -i'.bak' -e "s/server_domain_name/$server_domain_name/g; s/server_fqdn/$server_fqdn/g;"  \
@@ -46,17 +34,26 @@ rm -f "$WORKING_DIR"/copilot/api/manifest.yml.bak
 ### ASKING TO STORE ALB ACCESS-LOGS
 sh "$WORKING_DIR"/utils/scripts/helper/create-alb-logs-s3-bucket.sh
 
+### ASKING TO PRUNE DOCKER SYSTEM
+read -r -p "Do you want to prune your docker system? [y/N] " response
+case $response in
+  [yY])
+    sh "$WORKING_DIR"/utils/scripts/helper/2_docker-system-prune.sh
+    ;;
+esac
+
 echo ""
 echo "Getting information from AWS. Please wait..."
 
 ### GETTING CSR CERTIFICATE ARN
-acm_arn=$(aws acm list-certificates   \
-  --profile "$AWS_WORKLOADS_PROFILE"  \
-  --output text                       \
-  --query "CertificateSummaryList[?contains(DomainName, '$apex_domain_name')].[CertificateArn]")
+acm_arn=$(aws acm list-certificates       \
+  --includes  keyTypes=EC_prime256v1      \
+  --profile "$AWS_WORKLOADS_PROFILE"      \
+  --output text                           \
+  --query "CertificateSummaryList[?contains(DomainName, '$server_domain_name')].[CertificateArn]")
 if [ -z "$acm_arn" ]; then
   echo ""
-  echo "Error: Not ACM Certificate was found for domain: '$apex_domain_name'."
+  echo "Error: Not ACM Certificate was found for domain: '$server_domain_name'."
   echo "You can import your <CSR> certificates using the 'Helper Menu', option 4."
   sh "$WORKING_DIR"/utils/scripts/helper/1_revert-automated-scripts.sh
   exit 1
@@ -126,12 +123,13 @@ copilot deploy                            \
   --name api                              \
   --env "$AWS_WORKLOADS_ENV"              \
   --tag '1.5.0'                           \
+  --no-rollback                           \
   --resource-tags project=Hiperium,copilot-application-type=api,copilot-application-version=1.5.0
 echo ""
 echo "DONE!"
 
 echo ""
-echo "GETTING ALB HOST NAME..."
+echo "GETTING ALB DOMAIN NAME..."
 alb_domain_name=$(aws cloudformation describe-stacks --stack-name city-tasks-"$AWS_WORKLOADS_ENV" \
   --query "Stacks[0].Outputs[?OutputKey=='PublicLoadBalancerDNSName'].OutputValue" \
   --output text \
@@ -139,6 +137,6 @@ alb_domain_name=$(aws cloudformation describe-stacks --stack-name city-tasks-"$A
 echo "ALB Domain Name: $alb_domain_name"
 
 echo ""
-echo "IMPORTANT!!: Create new CNAME record in your Route53 Hosted Zone for your ALB Domain Name."
+echo "IMPORTANT!!: Create a new CNAME record in your Route53 Hosted Zone for your ALB Domain Name."
 echo ""
 echo "DONE!"

@@ -8,10 +8,10 @@ type: Load Balanced Web Service
 
 # Docker Image Arguments.
 image:
-  build: Dockerfile
+  build:
+    context: .
+    dockerfile: Dockerfile-native
   port: 8080
-  depends_on:
-    envoy: START
 
 # ECS Task Definition.
 cpu: 512
@@ -39,20 +39,24 @@ http:
     success_codes: '200,301'
     healthy_threshold: 3
     unhealthy_threshold: 2
-    interval: 15s
-    timeout: 10s
-    grace_period: 2m
-  deregistration_delay: 30s
+    interval: 10s
+    timeout: 5s
+    grace_period: 30s
+  deregistration_delay: 15s
   stickiness: false
   target_container: envoy
+  target_port: 443
 
 # Envoy container's port is 443. Protocol and health check will use "HTTPS".
 sidecars:
   envoy:
     port: 443
     image:
-      context: ./utils/docker/envoy
-      build: Dockerfile
+      build:
+        context: .
+        dockerfile: ./utils/docker/envoy/Dockerfile
+    variables:
+      ENVOY_UID: 0
 
 # Limit to read-only access to mounted root filesystems.
 storage:
@@ -79,6 +83,8 @@ environments:
           build:
             args:
               envoy_env: dev
+        variables:
+          ENVOY_LOG_LEVEL: debug
     variables:
       SPRING_PROFILES_ACTIVE: dev
     deployment:

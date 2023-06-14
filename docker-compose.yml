@@ -32,13 +32,13 @@ services:
       - tasks-network
 
   tasks-proxy:
-    image: aosolorzano/city-tasks-proxy:1.0.0
+    image: envoyproxy/envoy:v1.26-latest
     container_name: tasks-proxy
-    build:
-      context: .
-      dockerfile: ./utils/docker/envoy/Dockerfile
-      args:
-        - envoy_env=dev
+    volumes:
+      - ./utils/certs/ca-cert.pem:/etc/ca.cert
+      - ./utils/certs/dev/server-cert-dev.pem:/etc/server.cert
+      - ./utils/certs/dev/server-key.pem:/etc/server.key
+      - ./utils/docker/envoy/envoy.yaml:/etc/envoy/envoy.yaml
     ports:
       - "443:443"
     networks:
