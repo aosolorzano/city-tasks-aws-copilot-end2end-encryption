@@ -13,7 +13,7 @@ You can read the following sequence of articles to get more context:
 2. [OAuth2 in Spring Boot Native microservice](https://aosolorzano.medium.com/oauth2-in-spring-boot-native-reactive-microservice-with-amazon-cognito-as-oidc-service-c454d84a5234).
 3. [Deploying Spring Boot Native microservice using Cross-Account deployment](https://aosolorzano.medium.com/spring-boot-native-microservice-on-ecs-fargate-using-aws-copilot-cli-for-cross-account-deployment-73b1836f21f7).
 4. [Securing HTTP communications using Amazon Certificate Manager (ACM) and ALB](https://aosolorzano.medium.com/securing-http-communication-over-an-alb-using-acm-and-copilot-cli-in-a-multi-account-environment-954de1b89e54).
-5. [End-to-End Encryption using TLS ECDSA certificate and ACM with Copilot CLI](https://aosolorzano.medium.com/securing-http-communication-over-an-alb-using-acm-and-copilot-cli-in-a-multi-account-environment-954de1b89e54).
+5. [End-to-End Encryption using TLS ECDSA certificate and ACM with Copilot CLI](https://aosolorzano.medium.com/end-to-end-encryption-using-tls-ecdsa-certificate-acm-and-aws-copilot-cli-64f5daafe977).
 
 ## Description.
 This project uses the Spring Boot Framework to manage Quartz Jobs in a Spring Native microservice with the use of reactive programing using Spring WebFlux.
