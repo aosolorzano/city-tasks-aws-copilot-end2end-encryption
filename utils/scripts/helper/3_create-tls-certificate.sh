@@ -62,6 +62,9 @@ openssl x509 -req -sha256       \
   -out     server-cert-"$AWS_WORKLOADS_ENV".pem   \
   -CAcreateserial
 
+### CREATING WORKLOAD ENVIRONMENT DIRECTORY
+mkdir -p "$WORKING_DIR"/utils/certs/"$AWS_WORKLOADS_ENV"
+
 ### MOVING CERTIFICATE FILES TO THE CORRESPONDING DIRECTORY
 cp server-key-no-header.pem ./"$AWS_WORKLOADS_ENV"/server-key.pem
 mv server-cert-"$AWS_WORKLOADS_ENV".pem ca-cert.srl ./"$AWS_WORKLOADS_ENV"
